@@ -180,4 +180,139 @@ void StepperController::step() {
     trajectory_file.close();
 }
 
+void StepperController::step() {
+    float direction;
+
+    if (_goal_position < 0){
+        direction = -1.0;
+    }
+    else{
+        direction = 1.0;
+    }
+
+    // Set current position, velocity and acceleration to their initial values
+    _current_position = _initial_position;
+    _current_velocity = _initial_velocity;
+    _current_acceleration = _max_acceleration;
+
+
+    float total_distance = std::fabs(_goal_position - _initial_position);
+    float remaining_distance = _goal_position - _current_position;
+
+    float acceleration_time = (_max_velocity - _initial_velocity) / _max_acceleration;
+    float acceleration_distance = _initial_velocity * acceleration_time + 0.5 * _max_acceleration * std::pow
+            (acceleration_time, 2);
+
+    float deceleration_time = _max_velocity / _max_acceleration;
+    float deceleration_distance = 0.5 * _max_acceleration * std::pow(deceleration_time, 2);
+
+    float cruising_distance = total_distance - acceleration_distance - deceleration_distance;
+    cruising_distance = std::fmax(0, cruising_distance);
+    float cruising_time = cruising_distance / _max_velocity;
+
+
+    float total_time = acceleration_time + cruising_time + deceleration_time;
+
+
+    std::cout << "acceleration_time = " << acceleration_time << std::endl;
+    std::cout << "acceleration_distance = " << acceleration_distance << std::endl;
+    std::cout << "deceleration_time = " << deceleration_time << std::endl;
+    std::cout << "deceleration_distance = " << deceleration_distance << std::endl;
+    std::cout << "total_time = " << total_time << std::endl;
+    std::cout << "total_distance = " << total_distance << std::endl;
+    std::cout << "cruise_time = " << cruising_time << std::endl;
+    std::cout << "cruising_distance = " << cruising_distance << std::endl;
+    std::cout << "remaining_distance = " << remaining_distance << std::endl;
+
+
+    std::ofstream trajectory_file("../trajectories.csv");
+    if (!trajectory_file) {
+        std::cerr << "Failed to open file for writing!" << std::endl;
+    }
+
+    float time_step = 0.1;
+    float time_elapsed = 0.0;
+    float distance_covered = total_distance - remaining_distance;
+
+//    while (remaining_distance >= 1e-1) {
+    while (time_elapsed <= total_time) {
+//        if (current_position < acceleration_distance) {
+        if (time_elapsed < acceleration_time) {
+            std::cout << "\naccelerating " << time_elapsed << std::endl;
+            std::cout << "accelerating current_position = " << _current_position << std::endl;
+            std::cout << "accelerating current_velocity = " << _current_velocity << std::endl;
+            std::cout << "remaining_distance = " << remaining_distance << std::endl;
+            std::cout << "distance_covered = " << distance_covered << std::endl;
+            trajectory_file << time_elapsed << ", " << _current_position << ", " << _current_velocity << ", "
+                            << _current_acceleration << std::endl;
+            // velocity
+            _current_velocity += direction * _max_acceleration * time_step;
+            _current_velocity = std::min(_max_velocity, _current_velocity);
+
+            // Acceleration
+            _current_acceleration = _max_acceleration;
+
+            // position
+            _current_position += _current_velocity * time_step + 0.5 * _current_acceleration * std::pow(time_step, 2);
+
+            // compute remaining distance
+            remaining_distance = _goal_position - _current_position;
+            distance_covered = total_distance - remaining_distance;
+
+
+            time_elapsed += time_step;
+
+        }
+//        else if (current_position < acceleration_distance + cruising_distance) {
+        else if (time_elapsed < acceleration_time + cruising_time) {
+            std::cout << "\ncruising " << time_elapsed << std::endl;
+
+            _current_velocity = direction * _max_velocity;
+            _current_acceleration = 0;
+            _current_position += (_current_velocity * time_step);
+
+
+            remaining_distance = _goal_position - _current_position;
+            distance_covered = total_distance - remaining_distance;
+
+            trajectory_file << time_elapsed << ", " << _current_position << ", " << _current_velocity << ", " <<
+                                                                                                              _current_acceleration << std::endl;
+
+            time_elapsed += time_step;
+
+            std::cout << "cruising current_position = " << _current_position << std::endl;
+            std::cout << "cruising current_velocity = " << _current_velocity << std::endl;
+            std::cout << "cruising current_acceleration = " << _current_acceleration << std::endl;
+            std::cout << "cruising remaining_distance = " << remaining_distance << std::endl;
+            std::cout << "distance_covered = " << distance_covered << std::endl;
+
+
+        }
+        else {
+            std::cout << "\ndecelerating " << time_elapsed << std::endl;
+            _current_acceleration = -_max_acceleration;
+            _current_velocity += _current_acceleration * time_step;
+            _current_position += direction * _current_velocity * time_step + 0.5 * _current_acceleration * std::pow
+                    (time_step, 2);
+
+
+            remaining_distance = _goal_position - _current_position;
+            distance_covered = total_distance - remaining_distance;
+
+
+            trajectory_file << time_elapsed << ", " << _current_position << ", " << _current_velocity << ", "
+                            << _current_acceleration << std::endl;
+            time_elapsed += time_step;
+
+            std::cout << "decelerating current_position = " << _current_position << std::endl;
+            std::cout << "decelerating current_velocity = " << _current_velocity << std::endl;
+            std::cout << "decelerating current_acceleration = " << _current_acceleration << std::endl;
+            std::cout << "decelerating remaining_distance = " << remaining_distance << std::endl;
+            std::cout << "distance_covered = " << distance_covered << std::endl;
+
+
+        }
+    }
+    trajectory_file.close();
+}
 
