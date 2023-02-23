@@ -25,7 +25,6 @@ float StepperController::getCurrentVelocity() const {
     return _current_velocity;
 }
 
-
 bool StepperController::pre_motion_sanity_checks(float initial_position, float initial_velocity, float goal_position,
                                                  float max_velocity, float max_acceleration) {
     if (max_velocity == 0.0) {
@@ -59,6 +58,14 @@ bool StepperController::pre_motion_sanity_checks(float initial_position, float i
 
 
 void StepperController::step() {
+
+    bool sanity_check_flag;
+    sanity_check_flag = pre_motion_sanity_checks(_initial_position, _initial_velocity, _goal_position, _max_velocity,
+                                                 _max_acceleration);
+    if(!sanity_check_flag){
+        return;
+    }
+
     float direction;
 
     if (_goal_position < _initial_position){
@@ -69,11 +76,11 @@ void StepperController::step() {
     }
 
     // Adjust sign of velocity and acceleration if max_velocity is negative
-    if (_max_velocity < 0) {
-        _max_velocity *= -1;
-        _max_acceleration *= -1;
-        _initial_velocity *= -1;
-    }
+//    if (_max_velocity < 0) {
+//        _max_velocity *= -1;
+//        _max_acceleration *= -1;
+//        _initial_velocity *= -1;
+//    }
 
     // Set current position, velocity and acceleration to their initial values
     _current_position = _initial_position;
@@ -101,12 +108,7 @@ void StepperController::step() {
     float cruising_time = cruising_distance / _max_velocity;
 //    float cruising_time = cruising_distance / std::fabs(_max_velocity);
 
-bool sanity_check_flag;
-    sanity_check_flag = pre_motion_sanity_checks(_initial_position, _initial_velocity, _goal_position, _max_velocity,
-                                                 _max_acceleration);
-    if(!sanity_check_flag){
-        return;
-    }
+
 
     // Compute total time and check if it's feasible
     float total_time = acceleration_time + cruising_time + deceleration_time;
@@ -198,8 +200,6 @@ bool sanity_check_flag;
             std::cout << "cruising current_acceleration = " << _current_acceleration << std::endl;
             std::cout << "cruising remaining_distance = " << remaining_distance << std::endl;
             std::cout << "distance_covered = " << distance_covered << std::endl;
-
-
         }
         else {
             std::cout << "\ndecelerating " << time_elapsed << std::endl;
@@ -221,7 +221,7 @@ bool sanity_check_flag;
 
             std::cout << "decelerating current_position = " << _current_position << std::endl;
             std::cout << "decelerating current_velocity = " << _current_velocity << std::endl;
-            std::cout << "decelerating current_acceleration = " << _current_acceleration << std::endl;
+//            std::cout << "decelerating current_acceleration = " << _current_acceleration << std::endl;
             std::cout << "decelerating remaining_distance = " << remaining_distance << std::endl;
             std::cout << "distance_covered = " << distance_covered << std::endl;
 
