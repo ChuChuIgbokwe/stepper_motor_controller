@@ -14,8 +14,8 @@ max_velocity, float max_acceleration) :
         _max_acceleration(max_acceleration),
         _current_position(initial_position),
         _current_velocity(initial_velocity),
-        _distance_and_time_debug_flag(true),
-        _trapezoid_curve_debug_flag(true) {}
+        _distance_and_time_debug_flag(false),
+        _trapezoid_curve_debug_flag(false) {}
 
 
 
