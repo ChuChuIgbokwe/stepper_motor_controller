@@ -4,6 +4,7 @@
 
 #ifndef URBAN_MACHINE_GENERIC_STEPPER_MOTOR_CONTROLLER_STEPPERCONTROLLER_H
 #define URBAN_MACHINE_GENERIC_STEPPER_MOTOR_CONTROLLER_STEPPERCONTROLLER_H
+
 #include <iostream>
 #include <math.h>
 #include <fstream>
@@ -11,9 +12,10 @@
 class StepperController {
 public:
     //Constructor
-//    StepperController();
-//    StepperController(int initial_position, int initial_velocity);
     StepperController(float initial_position, float initial_velocity);
+
+    StepperController(float initial_position, float initial_velocity, float goal_position, float max_velocity,
+                      float max_acceleration);
 
     float getCurrentPosition() const;
 
@@ -36,16 +38,7 @@ private:
     float _goal_position;
     float _max_velocity;
     float _max_acceleration;
-    float _acceleration_time;
-    float _acceleration_distance;
-    float _deceleration_time;
-    float _deceleration_distance;
-    float _total_time;
-    float _total_distance;
-    float _cruising_time;
-    float _cruising_distance;
-    float _remaining_distance;
-    float _direction;
+
 
 
     void print_acceleration_debug_values();
@@ -63,8 +56,43 @@ private:
     float calculate_deceleration_time(float max_velocity, float max_acceleration);
 
     float calculate_deceleration_distance(float max_acceleration, float deceleration_time);
-};
 
+    bool _distance_and_time_debug_flag;
+    bool _trapezoid_curve_debug_flag;
+
+    void debug_print_motion_parameters(float acceleration_time, float acceleration_distance, float deceleration_time,
+                                       float deceleration_distance, float total_time, float total_distance,
+                                       float cruising_time, float cruising_distance) const;
+
+    void print_acceleration_debug_values(float &time_elapsed, float &remaining_distance, float &distance_covered);
+
+    void print_cruising_debug_values(float &time_elapsed, float &remaining_distance, float &distance_covered);
+
+    void print_deceleration_debug_values(float &time_elapsed, float &remaining_distance, float &distance_covered);
+
+    bool isDistanceAndTimeDebugFlag() const;
+
+    void setDistanceAndTimeDebugFlag(bool distanceAndTimeDebugFlag);
+
+    void accelerate(float &current_velocity, float &max_velocity, float &current_position, float &current_acceleration,
+                    float max_acceleration, float time_step);
+
+    void cruise(float &current_velocity, float &current_position, float max_velocity, float &current_acceleration,
+                float time_step);
+
+    void
+    decelerate(float &current_velocity, float &current_position, float &current_acceleration, float max_acceleration,
+               float time_step);
+
+    void
+    update_trajectory(std::ofstream &trajectory_file, float &time_elapsed, float &current_position,
+                      float &current_velocity,
+                      float &current_acceleration);
+
+    void generate_trajectory(float &total_time, float &time_elapsed, float &acceleration_time, float &cruising_time,
+                             float &time_step, std::ofstream &trajectory_file, float &remaining_distance,
+                             float &distance_covered, float &total_distance);
+};
 
 
 #endif //URBAN_MACHINE_GENERIC_STEPPER_MOTOR_CONTROLLER_STEPPERCONTROLLER_H
