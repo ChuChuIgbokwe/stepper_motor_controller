@@ -34,16 +34,26 @@ void StepperController::set_goal(float position, float velocity, float accelerat
     _current_acceleration = acceleration;
 
 }
-
-
+/// @brief a getter method to return the current position
+/// @return
 float StepperController::getCurrentPosition() const {
     return _current_position;
 }
-
+/// @brief a getter method to return the current velocity
+/// @return
 float StepperController::getCurrentVelocity() const {
     return _current_velocity;
 }
-
+/// @brief This method prints out the various motion parameters to make debugging easier, it is
+/// toggled on and off with _distance_and_time_debug_flag
+/// @param acceleration_time
+/// @param acceleration_distance
+/// @param deceleration_time
+/// @param deceleration_distance
+/// @param total_time
+/// @param total_distance
+/// @param cruising_time
+/// @param cruising_distance
 void StepperController::debug_print_motion_parameters(float acceleration_time, float acceleration_distance,
                                                       float deceleration_time, float deceleration_distance,
                                                       float total_time, float total_distance, float cruising_time,
@@ -58,7 +68,13 @@ void StepperController::debug_print_motion_parameters(float acceleration_time, f
     std::cout << "cruising_distance = " << cruising_distance << std::endl;
 }
 
-
+/// @brief This method if the initial parameters are viable for the stepper motor to have a trapezoidal velocity curve.
+/// @param initial_position
+/// @param initial_velocity
+/// @param goal_position
+/// @param max_velocity
+/// @param max_acceleration
+/// @return
 bool StepperController::pre_motion_sanity_checks(float initial_position, float initial_velocity, float goal_position,
                                                  float max_velocity, float max_acceleration) {
     if (max_velocity == 0.0) {
@@ -162,7 +178,11 @@ void StepperController::step() {
                         remaining_distance, distance_covered, total_distance);
     trajectory_file.close();
 }
-
+/// @brief This method prints out the various acceleration values to make debugging the acceleration stage easier, it is
+///// toggled on and off with _trapezoid_curve_debug_flag
+/// @param time_elapsed
+/// @param remaining_distance
+/// @param distance_covered
 void StepperController::print_acceleration_debug_values(float &time_elapsed, float &remaining_distance, float &
 distance_covered) {
     std::cout << "\naccelerating " << time_elapsed << std::endl;
@@ -173,7 +193,11 @@ distance_covered) {
     std::cout << "distance_covered = " << distance_covered << std::endl;
 
 }
-
+/// @brief This method prints out the various cruising values to make debugging the cruising stage easier, it is
+/// toggled on and off with _trapezoid_curve_debug_flag
+/// @param time_elapsed
+/// @param remaining_distance
+/// @param distance_covered
 void StepperController::print_cruising_debug_values(float &time_elapsed, float &remaining_distance,
                                                     float &distance_covered) {
     std::cout << "\ncruising " << time_elapsed << std::endl;
@@ -184,6 +208,11 @@ void StepperController::print_cruising_debug_values(float &time_elapsed, float &
     std::cout << "distance_covered = " << distance_covered << std::endl;
 }
 
+/// @brief This method prints out the various deceleration values to make debugging the deceleration stage easier, it is
+/// toggled on and off with _trapezoid_curve_debug_flag
+/// @param time_elapsed
+/// @param remaining_distance
+/// @param distance_covered
 void StepperController::print_deceleration_debug_values(float &time_elapsed, float &remaining_distance,
                                                         float &distance_covered) {
     std::cout << "\ndecelerating " << time_elapsed << std::endl;
@@ -203,6 +232,18 @@ void StepperController::setDistanceAndTimeDebugFlag(bool distanceAndTimeDebugFla
     _distance_and_time_debug_flag = distanceAndTimeDebugFlag;
 }
 
+
+/// @brief This method handles the calculations for the acceleration phase. current acceleration is set to the max
+/// acceleration, the formula for current velocity is the first equation of motion V = U + a*t. or current velocity =
+/// initial velocity + acceleration * time. Since the current_velocity is the initial velocity originally, we simply
+/// add a*t at each time step. Position is the second equation of motion S = u*t + 0.5 * a*t^2. Like current velocity
+/// we increase our position at each time step.
+/// @param current_velocity
+/// @param max_velocity
+/// @param current_position
+/// @param current_acceleration
+/// @param max_acceleration
+/// @param time_step
 void StepperController::accelerate(float &current_velocity, float &max_velocity, float &current_position, float &
 current_acceleration, float max_acceleration, float time_step) {
     current_acceleration = max_acceleration;
@@ -211,14 +252,31 @@ current_acceleration, float max_acceleration, float time_step) {
 
     current_position += current_velocity * time_step + 0.5 * current_acceleration * std::pow(time_step, 2);
 }
-
+/// @brief This method handles the calculations for the cruising phase. current acceleration is set to zero since
+/// the motor is moving at it's max velocity. The current velocity is set to the maximum velocity and the current
+/// position the second equation of motion. However, a is 0 so S = u*t + 0.5*a*t^2 becomes S = u*t. We update the
+/// position at every time step
+/// @param current_velocity
+/// @param current_position
+/// @param max_velocity
+/// @param current_acceleration
+/// @param time_step
 void StepperController::cruise(float &current_velocity, float &current_position, float max_velocity, float &
 current_acceleration, float time_step) {
     current_acceleration = 0;
     current_velocity = max_velocity;
     current_position += current_velocity * time_step;
 }
-
+/// @brief This method handles the calculations for the deceleration phase. current acceleration is set to the
+// negative of max acceleration since the motor is slowing down, the formula for current velocity is the first equation
+/// of motion V = U + a*t. or current velocity = initial velocity + acceleration * time. Since the current_velocity is
+/// the initial velocity originally, we simply add a*t at each time step. Position is the second equation of motion
+/// S = u*t + 0.5 * a*t^2. Like current velocity we increase our position at each time step.
+/// @param current_velocity
+/// @param current_position
+/// @param current_acceleration
+/// @param max_acceleration
+/// @param time_step
 void StepperController::decelerate(float &current_velocity, float &current_position, float &current_acceleration,
                                    float max_acceleration, float time_step) {
     current_acceleration = -max_acceleration;
@@ -226,6 +284,13 @@ void StepperController::decelerate(float &current_velocity, float &current_posit
     current_position += current_velocity * time_step + 0.5 * current_acceleration * std::pow(time_step, 2);
 }
 
+/// @brief This method encapsulates writing the time elapsed, positions, velocities and accelerations to an already
+/// open csv file
+/// @param trajectory_file
+/// @param time_elapsed
+/// @param current_position
+/// @param current_velocity
+/// @param current_acceleration
 void StepperController::update_trajectory(std::ofstream &trajectory_file, float &time_elapsed,
                                           float &current_position, float &current_velocity,
                                           float &current_acceleration) {
@@ -233,6 +298,18 @@ void StepperController::update_trajectory(std::ofstream &trajectory_file, float 
                     << current_acceleration << std::endl;
 }
 
+/// @brief This method computes and writes the time steps, positions, velocities and accelerations of the stepper motor
+/// to a csv file. The while loop runs while the time elapsed is less than the total time to get to the stepper motor's
+/// goal position. If the _trapezoid_curve_debug_flag is toggled to true, debug messages are printed to screen
+/// @param total_time
+/// @param time_elapsed
+/// @param acceleration_time
+/// @param cruising_time
+/// @param time_step
+/// @param trajectory_file
+/// @param remaining_distance
+/// @param distance_covered
+/// @param total_distance
 void StepperController::generate_trajectory(float &total_time, float &time_elapsed, float &acceleration_time, float &
 cruising_time, float &time_step, std::ofstream &trajectory_file, float &
 remaining_distance, float &distance_covered, float &total_distance) {
