@@ -40,21 +40,10 @@ bool StepperController::pre_motion_sanity_checks(float initial_position, float i
                      "positive max velocity" << std::endl;
         return false;
     }
-//        if ((goal_position < 0 and max_velocity > 0) or (goal_position > 0 and max_velocity < 0) ) {
-//            std::cerr << "Error, max velocity and goal position both have to be positive or negative."
-//            << std::endl;
-//            return false;
-//        }
     if (max_acceleration < 0.0) {
         std::cerr << "Max acceleration is cannot be negative." << std::endl;
         return false;
     }
-
-//        if (std::pow(max_velocity,2) < std::pow(initial_velocity, 2) + 2 * max_acceleration * (goal_position -
-//        initial_position)) {
-//            std::cerr << "This configuration of values won't follow a trapezoidal velocity curve" << std::endl;
-//            return false;
-//        }
 
     if (max_acceleration == 0 or max_velocity == 0) {
         std::cerr << "Potential Division by Zero Error, max_acceleration or max_velocity is zero." << std::endl;
@@ -67,54 +56,6 @@ bool StepperController::pre_motion_sanity_checks(float initial_position, float i
     }
     return true;
 }
-
-
-void StepperController::_set_direction() {
-    if (_goal_position < 0){
-        _direction = -1.0;
-    }
-    else{
-        _direction = 1.0;
-    }
-}
-
-void StepperController::_calculate_distances() {
-    _total_distance = std::fabs(_goal_position - _initial_position);
-    _acceleration_distance = _initial_velocity * _acceleration_time + 0.5 * _max_acceleration * std::pow(_acceleration_time, 2);
-    _deceleration_distance = 0.5 * _max_acceleration * std::pow(_deceleration_time, 2);
-    _cruising_distance = _total_distance - _acceleration_distance - _deceleration_distance;
-    _cruising_distance = std::fmax(0.0, _cruising_distance);
-}
-
-void StepperController::_calculate_times() {
-    _acceleration_time = (_max_velocity - _initial_velocity) / _max_acceleration;
-    _deceleration_time = _max_velocity / _max_acceleration;
-    _cruising_time = _cruising_distance / _max_velocity;
-    _total_time = _acceleration_time + _cruising_time + _deceleration_time;
-}
-
-
-float StepperController::calculate_acceleration_time(float max_velocity, float initial_velocity,
-                                                            float max_acceleration) {
-    return (max_velocity - initial_velocity) / max_acceleration;
-}
-
-float StepperController::calculate_acceleration_distance(float initial_velocity, float
-acceleration_time, float max_acceleration){
-    return initial_velocity * acceleration_time + 0.5 * max_acceleration * std::pow
-            (acceleration_time, 2);
-
-}
-
-float StepperController::calculate_deceleration_time(float max_velocity, float max_acceleration) {
-    return max_velocity / max_acceleration;
-}
-
-float StepperController::calculate_deceleration_distance(float max_acceleration, float deceleration_time) {
-    return 0.5 * max_acceleration * std::pow(deceleration_time, 2);
-}
-
-
 
 
 void StepperController::step() {
