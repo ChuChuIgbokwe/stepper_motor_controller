@@ -27,45 +27,46 @@ float StepperController::getCurrentVelocity() const {
 
 
 bool StepperController::pre_motion_sanity_checks(float initial_position, float initial_velocity, float goal_position,
-                                                     float max_velocity, float max_acceleration) {
-        if (initial_position < 0.0 || initial_position > 100.0) {
-            std::cerr << "Initial position out of range!" << std::endl;
-            return false;
-        }
-        if (initial_velocity < 0.0 || initial_velocity > max_velocity) {
-            std::cerr << "Initial velocity out of range!" << std::endl;
-            return false;
-        }
-        if (goal_position < 0.0 || goal_position > 100.0) {
-            std::cerr << "Goal position out of range!" << std::endl;
-            return false;
-        }
-        if (max_velocity == 0.0) {
-            std::cerr << "Error, max velocity is 0. Motor will cruise forever" << std::endl;
-            return false;
-        }
-        if (max_acceleration < 0.0) {
-            std::cerr << "Max acceleration is negative!" << std::endl;
-            return false;
-        }
+                                                 float max_velocity, float max_acceleration) {
+    if (max_velocity == 0.0) {
+        std::cerr << "Error, max velocity is 0. Motor will cruise forever" << std::endl;
+        return false;
+    }if (max_velocity < initial_velocity) {
+        std::cerr << "Error, max velocity cannot be less than initial velocity" << std::endl;
+        return false;
+    }
+    if (max_velocity > 0 and initial_velocity < 0 and goal_position < initial_position ) {
+        std::cerr << "Error, it's not possible to hit a goal position less than the initial position with a "
+                     "positive max velocity" << std::endl;
+        return false;
+    }
+//        if ((goal_position < 0 and max_velocity > 0) or (goal_position > 0 and max_velocity < 0) ) {
+//            std::cerr << "Error, max velocity and goal position both have to be positive or negative."
+//            << std::endl;
+//            return false;
+//        }
+    if (max_acceleration < 0.0) {
+        std::cerr << "Max acceleration is cannot be negative." << std::endl;
+        return false;
+    }
 
-        if (std::pow(max_velocity,2) < std::pow(initial_velocity, 2) + 2 * max_acceleration * (goal_position -
-        initial_position)) {
-            std::cerr << "This configuration of values won't follow a trapezoidal velocity curve" << std::endl;
-            return false;
-        }
+//        if (std::pow(max_velocity,2) < std::pow(initial_velocity, 2) + 2 * max_acceleration * (goal_position -
+//        initial_position)) {
+//            std::cerr << "This configuration of values won't follow a trapezoidal velocity curve" << std::endl;
+//            return false;
+//        }
 
-            if (max_acceleration == 0 or max_velocity == 0) {
-                std::cerr << "Potential Division by Zero Error, max_acceleration or max_velocity is zero." << std::endl;
-                return false;
-            }
-            if (initial_position == goal_position) {
-                std::cerr << "Error, the motor won't move, initial_position and goal_position are the same"
-                          << std::endl;
-                return false;
-            }
-            return true;
-        }
+    if (max_acceleration == 0 or max_velocity == 0) {
+        std::cerr << "Potential Division by Zero Error, max_acceleration or max_velocity is zero." << std::endl;
+        return false;
+    }
+    if (initial_position == goal_position) {
+        std::cerr << "Error, the motor won't move, initial_position and goal_position are the same"
+                  << std::endl;
+        return false;
+    }
+    return true;
+}
 
 
 void StepperController::_set_direction() {
@@ -159,6 +160,12 @@ void StepperController::step() {
     float cruising_time = cruising_distance / _max_velocity;
 //    float cruising_time = cruising_distance / std::fabs(_max_velocity);
 
+bool sanity_check_flag;
+    sanity_check_flag = pre_motion_sanity_checks(_initial_position, _initial_velocity, _goal_position, _max_velocity,
+                                                 _max_acceleration);
+    if(!sanity_check_flag){
+        return;
+    }
 
     // Compute total time and check if it's feasible
     float total_time = acceleration_time + cruising_time + deceleration_time;
