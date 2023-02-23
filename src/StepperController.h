@@ -21,13 +21,14 @@ public:
 
     float getCurrentVelocity() const;
 
-//    void set_goal(int position, int velocity, int acceleration);
     void set_goal(float position, float velocity, float acceleration);
 
     void step();
 
     bool pre_motion_sanity_checks(float initial_position, float initial_velocity, float
     goal_position, float max_velocity, float max_acceleration);
+    bool isSanityCheckFlag() const;
+    void setSanityCheckFlag(bool sanityCheckFlag);
 
 
 private:
@@ -40,12 +41,6 @@ private:
     float _max_velocity;
     float _max_acceleration;
     bool _sanity_check_flag;
-public:
-    bool isSanityCheckFlag() const;
-
-    void setSanityCheckFlag(bool sanityCheckFlag);
-
-private:
 
 
     void print_acceleration_debug_values();
@@ -99,6 +94,24 @@ private:
     void generate_trajectory(float &total_time, float &time_elapsed, float &acceleration_time, float &cruising_time,
                              float &time_step, std::ofstream &trajectory_file, float &remaining_distance,
                              float &distance_covered, float &total_distance);
+
+    float calculate_total_distance();
+
+    float calculate_acceleration_time();
+
+    float calculate_acceleration_distance(float acceleration_time);
+
+    float calculate_deceleration_time();
+
+    float calculate_deceleration_distance(float deceleration_time);
+
+    float calculate_cruising_distance(float total_distance, float acceleration_distance, float deceleration_distance);
+
+    float calculate_cruising_time(float cruising_distance);
+
+    float calculate_remaining_distance();
+
+    float calculate_total_time(float acceleration_time, float cruising_time, float deceleration_time);
 };
 
 

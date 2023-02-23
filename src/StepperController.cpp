@@ -48,6 +48,67 @@ float StepperController::getCurrentVelocity() const {
 }
 
 
+void StepperController::step() {
+
+//    bool sanity_check_flag;
+    _sanity_check_flag = pre_motion_sanity_checks(_initial_position, _initial_velocity, _goal_position, _max_velocity,
+                                                  _max_acceleration);
+    if (!_sanity_check_flag) {
+        return;
+    }
+
+    float total_distance = std::fabs(_goal_position - _initial_position);
+    float remaining_distance = _goal_position - _current_position;
+
+    float acceleration_time = std::fabs((_max_velocity - _initial_velocity) / _max_acceleration);
+    float acceleration_distance =
+            _initial_velocity * acceleration_time + 0.5 * _max_acceleration * std::pow(acceleration_time, 2);
+
+
+    float deceleration_time = std::fabs(_max_velocity / _max_acceleration);
+    float deceleration_distance = std::fabs(0.5 * _max_acceleration * std::pow(deceleration_time, 2));
+
+    float cruising_distance = total_distance - acceleration_distance - deceleration_distance;
+    cruising_distance = std::fmax(0, cruising_distance);
+    float cruising_time = cruising_distance / _max_velocity;
+
+    // Compute total time and check if it's feasible
+    float total_time = acceleration_time + cruising_time + deceleration_time;
+    if (cruising_time == 0) {
+        std::cout << "WARNING: Cannot follow trapezoidal velocity curve with the given parameters. Cruising time is 0"
+                  << std::endl;
+    }
+    if (total_time <= 0) {
+        std::cerr << "WARNING: Cannot follow trapezoidal velocity curve with the given parameters. total_time is less"
+                     " than 0"
+                  << std::endl;
+        return;
+    }
+    float distance_covered = total_distance - remaining_distance;
+
+    if (_distance_and_time_debug_flag) {
+        debug_print_motion_parameters(acceleration_time, acceleration_distance,
+                                      deceleration_time, deceleration_distance, total_time, total_distance,
+                                      cruising_time,
+                                      cruising_distance);
+    }
+
+    std::ofstream trajectory_file("../trajectories.csv");
+    if (!trajectory_file) {
+        std::cerr << "Failed to open file for writing!" << std::endl;
+    }
+
+    float time_step = 0.1;
+    float time_elapsed = 0.0;
+    _current_acceleration = _max_acceleration;
+
+
+    generate_trajectory(total_time, time_elapsed, acceleration_time, cruising_time, time_step, trajectory_file,
+                        remaining_distance, distance_covered, total_distance);
+    trajectory_file.close();
+}
+
+
 /// @brief This method prints out the various motion parameters to make debugging easier, it is
 /// toggled on and off with _distance_and_time_debug_flag
 /// @param acceleration_time
@@ -123,65 +184,6 @@ bool StepperController::pre_motion_sanity_checks(float initial_position, float i
 }
 
 
-void StepperController::step() {
-
-//    bool sanity_check_flag;
-    _sanity_check_flag = pre_motion_sanity_checks(_initial_position, _initial_velocity, _goal_position, _max_velocity,
-                                                 _max_acceleration);
-    if (!_sanity_check_flag) {
-        return;
-    }
-
-    float total_distance = std::fabs(_goal_position - _initial_position);
-    float remaining_distance = _goal_position - _current_position;
-
-    float acceleration_time = std::fabs((_max_velocity - _initial_velocity) / _max_acceleration);
-    float acceleration_distance =
-            _initial_velocity * acceleration_time + 0.5 * _max_acceleration * std::pow(acceleration_time, 2);
-
-
-    float deceleration_time = std::fabs(_max_velocity / _max_acceleration);
-    float deceleration_distance = std::fabs(0.5 * _max_acceleration * std::pow(deceleration_time, 2));
-
-    float cruising_distance = total_distance - acceleration_distance - deceleration_distance;
-    cruising_distance = std::fmax(0, cruising_distance);
-    float cruising_time = cruising_distance / _max_velocity;
-
-    // Compute total time and check if it's feasible
-    float total_time = acceleration_time + cruising_time + deceleration_time;
-    if (cruising_time == 0) {
-        std::cout << "WARNING: Cannot follow trapezoidal velocity curve with the given parameters. Cruising time is 0"
-                  << std::endl;
-    }
-    if (total_time <= 0) {
-        std::cerr << "WARNING: Cannot follow trapezoidal velocity curve with the given parameters. total_time is less"
-                     " than 0"
-                  << std::endl;
-        return;
-    }
-    float distance_covered = total_distance - remaining_distance;
-
-    if (_distance_and_time_debug_flag) {
-        debug_print_motion_parameters(acceleration_time, acceleration_distance,
-                                      deceleration_time, deceleration_distance, total_time, total_distance,
-                                      cruising_time,
-                                      cruising_distance);
-    }
-
-    std::ofstream trajectory_file("../trajectories.csv");
-    if (!trajectory_file) {
-        std::cerr << "Failed to open file for writing!" << std::endl;
-    }
-
-    float time_step = 0.1;
-    float time_elapsed = 0.0;
-    _current_acceleration = _max_acceleration;
-
-
-    generate_trajectory(total_time, time_elapsed, acceleration_time, cruising_time, time_step, trajectory_file,
-                        remaining_distance, distance_covered, total_distance);
-    trajectory_file.close();
-}
 /// @brief This method prints out the various acceleration values to make debugging the acceleration stage easier, it is
 ///// toggled on and off with _trapezoid_curve_debug_flag
 /// @param time_elapsed
@@ -197,6 +199,8 @@ distance_covered) {
     std::cout << "distance_covered = " << distance_covered << std::endl;
 
 }
+
+
 /// @brief This method prints out the various cruising values to make debugging the cruising stage easier, it is
 /// toggled on and off with _trapezoid_curve_debug_flag
 /// @param time_elapsed
@@ -397,30 +401,45 @@ void StepperController::setSanityCheckFlag(bool sanityCheckFlag) {
 //    }
 //}
 
-//float StepperController::calculate_total_distance() {
-//    return std::fabs(_goal_position - _initial_position);
-//}
-//
-//float StepperController::calculate_acceleration_distance() {
-//    float acceleration_time = calculate_acceleration_time();
-//    return _initial_velocity * acceleration_time + 0.5 * _max_acceleration * std::pow(acceleration_time, 2);
-//}
-//
-//float StepperController::calculate_deceleration_distance() {
-//    float deceleration_time = calculate_deceleration_time();
-//    return 0.5 * _max_acceleration * std::pow(deceleration_time, 2);
-//}
-//
-//float StepperController::calculate_cruising_distance(float total_distance, float acceleration_distance,
-//                                                     float deceleration_distance) {
-//    float cruising_distance = total_distance - acceleration_distance - deceleration_distance;
-//    return std::fmax(0, cruising_distance);
-//}
-//
-//float StepperController::calculate_acceleration_time() {
-//    return std::fabs((_max_velocity - _initial_velocity) / _max_acceleration);
-//}
-//
-//float StepperController::calculate_deceleration_time() {
-//    return std::fabs(_max_velocity / _max_acceleration);
-//}
+float StepperController::calculate_total_distance() {
+    return std::fabs(_goal_position - _initial_position);
+}
+
+
+float StepperController::calculate_acceleration_time() {
+    return std::fabs((_max_velocity - _initial_velocity) / _max_acceleration);
+}
+
+float StepperController::calculate_acceleration_distance(float acceleration_time) {
+    return _initial_velocity * acceleration_time + 0.5 * _max_acceleration * std::pow(acceleration_time, 2);
+}
+
+
+float StepperController::calculate_deceleration_time() {
+    return std::fabs(_max_velocity / _max_acceleration);
+}
+
+float StepperController::calculate_deceleration_distance(float deceleration_time) {
+    return 0.5 * _max_acceleration * std::pow(deceleration_time, 2);
+}
+
+float StepperController::calculate_cruising_distance(float total_distance, float acceleration_distance,
+                                                     float deceleration_distance) {
+    float cruising_distance = total_distance - acceleration_distance - deceleration_distance;
+    return std::fmax(0, cruising_distance);
+}
+
+float StepperController::calculate_cruising_time(float cruising_distance){
+    return cruising_distance / _max_velocity;
+}
+
+
+float StepperController::calculate_remaining_distance(){
+        return _goal_position - _current_position;
+}
+
+
+// Compute total time and check if it's feasible
+float StepperController::calculate_total_time(float acceleration_time, float cruising_time, float deceleration_time){
+    return acceleration_time + cruising_time + deceleration_time;
+}
