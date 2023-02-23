@@ -14,6 +14,8 @@ public:
     //Constructor
     StepperController(float initial_position, float initial_velocity);
 
+    virtual ~StepperController();
+
     StepperController(float initial_position, float initial_velocity, float goal_position, float max_velocity,
                       float max_acceleration);
 
@@ -29,6 +31,8 @@ public:
     goal_position, float max_velocity, float max_acceleration);
     bool isSanityCheckFlag() const;
     void setSanityCheckFlag(bool sanityCheckFlag);
+    void setDistanceAndTimeDebugFlag(bool distanceAndTimeDebugFlag);
+
 
 
 private:
@@ -42,22 +46,6 @@ private:
     float _max_acceleration;
     bool _sanity_check_flag;
 
-
-    void print_acceleration_debug_values();
-
-    void _set_direction();
-
-    void _calculate_distances();
-
-    void _calculate_times();
-
-    float calculate_acceleration_time(float max_velocity, float initial_velocity, float max_acceleration);
-
-    float calculate_acceleration_distance(float initial_velocity, float acceleration_time, float max_acceleration);
-
-    float calculate_deceleration_time(float max_velocity, float max_acceleration);
-
-    float calculate_deceleration_distance(float max_acceleration, float deceleration_time);
 
     bool _distance_and_time_debug_flag;
     bool _trapezoid_curve_debug_flag;
@@ -74,7 +62,6 @@ private:
 
     bool isDistanceAndTimeDebugFlag() const;
 
-    void setDistanceAndTimeDebugFlag(bool distanceAndTimeDebugFlag);
 
     void accelerate(float &current_velocity, float &max_velocity, float &current_position, float &current_acceleration,
                     float max_acceleration, float time_step);
