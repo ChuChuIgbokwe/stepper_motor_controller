@@ -1,67 +1,73 @@
 #include <iostream>
 #include "src/StepperController.h"
-#include <boost/program_options.hpp>
 #include <cstdlib>
+#include <vector>
+#include <string>
 
-namespace po = boost::program_options;
-
-int main(int argc, char* argv[]) {
-
-//StepperController stepperController(150, -50);
-//stepperController.set_goal(850,75,10);
-//stepperController.step();
-//    StepperController stepperController(-150, -50, 550, 75, 10);
-//    StepperController stepperController(-150, -50);
-//    stepperController.set_goal(550, 75, 10);
-//    stepperController.step();
+////    StepperController stepperController(-150, -50, 550, 75, 10);
+////    StepperController stepperController(-150, -50);
+////    stepperController.set_goal(550, 75, 10);
+////    stepperController.step();
 
 
-    po::options_description desc("Allowed options");
-    desc.add_options()
-            ("help", "produce help message")
-            ("initial-pos", po::value<int>(), "initial position of stepper motor")
-            ("initial-vel", po::value<int>(), "initial velocity of stepper motor")
-            ("goal-pos", po::value<int>(), "goal position of stepper motor")
-            ("max-vel", po::value<int>(), "maximum velocity of stepper motor")
-            ("max-acc", po::value<int>(), "maximum acceleration of stepper motor");
 
-    po::variables_map vm;
-    po::store(po::parse_command_line(argc, argv, desc), vm);
-    po::notify(vm);
-
-    if (vm.count("help")) {
-        std::cout << desc << "\n";
-        return 1;
+// Define a helper function to parse command line arguments
+template <typename T>
+bool getCmdOption(const std::vector<std::string>& args, const std::string& option, T& value) {
+    auto iter = std::find(args.begin(), args.end(), option);
+    if (iter != args.end() && ++iter != args.end()) {
+        try {
+            value = std::stoi(*iter);
+            return true;
+        } catch (const std::exception& e) {
+            std::cerr << "Invalid argument for " << option << ": " << *iter << "\n";
+            return false;
+        }
     }
+    return false;
+}
 
+int main(int argc, char* argv[])
+{
+    // Define command line options
     int initial_pos = 0;
     int initial_vel = 0;
     int goal_pos = 0;
     int max_vel = 0;
     int max_acc = 0;
+    bool show_help = false;
 
-    if (vm.count("initial-pos")) {
-        initial_pos = vm["initial-pos"].as<int>();
+    // Parse command line arguments
+    std::vector<std::string> args(argv + 1, argv + argc);
+    for (const auto& arg : args) {
+        if (arg == "-h" || arg == "--help") {
+            show_help = true;
+        } else if (!getCmdOption(args, "--initial-pos", initial_pos) ||
+                   !getCmdOption(args, "--initial-vel", initial_vel) ||
+                   !getCmdOption(args, "--goal-pos", goal_pos) ||
+                   !getCmdOption(args, "--max-vel", max_vel) ||
+                   !getCmdOption(args, "--max-acc", max_acc)) {
+            show_help = true;
+            break;
+        }
     }
 
-    if (vm.count("initial-vel")) {
-        initial_vel = vm["initial-vel"].as<int>();
+    // Print help message and exit if requested or if command line arguments are invalid
+    if (show_help) {
+        std::cout << "Usage: " << argv[0] << " [--initial-pos <int>] [--initial-vel <int>] [--goal-pos <int>] [--max-vel <int>] [--max-acc <int>]\n";
+        return 0;
     }
 
-    if (vm.count("goal-pos")) {
-        goal_pos = vm["goal-pos"].as<int>();
-    }
-
-    if (vm.count("max-vel")) {
-        max_vel = vm["max-vel"].as<int>();
-    }
-
-    if (vm.count("max-acc")) {
-        max_acc = vm["max-acc"].as<int>();
-    }
-
+    // Set up stepper controller and perform motor movement
     StepperController controller(initial_pos, initial_vel, goal_pos, max_vel, max_acc);
     controller.step();
+//
 
-    system("python3 ../plot_trajectory.py");
+    // Graph position over time if everything looks good. This prevents the last successful plot from being displayed
+    // as the csv file hasn't been overwritten yet
+    bool sanity_check_flag = controller.isSanityCheckFlag();
+    if(sanity_check_flag) {
+        system("python3 ../plot_trajectory.py");
+    }
+    return 0;
 }

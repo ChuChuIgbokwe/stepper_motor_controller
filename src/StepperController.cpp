@@ -39,11 +39,15 @@ void StepperController::set_goal(float position, float velocity, float accelerat
 float StepperController::getCurrentPosition() const {
     return _current_position;
 }
+
+
 /// @brief a getter method to return the current velocity
 /// @return
 float StepperController::getCurrentVelocity() const {
     return _current_velocity;
 }
+
+
 /// @brief This method prints out the various motion parameters to make debugging easier, it is
 /// toggled on and off with _distance_and_time_debug_flag
 /// @param acceleration_time
@@ -121,10 +125,10 @@ bool StepperController::pre_motion_sanity_checks(float initial_position, float i
 
 void StepperController::step() {
 
-    bool sanity_check_flag;
-    sanity_check_flag = pre_motion_sanity_checks(_initial_position, _initial_velocity, _goal_position, _max_velocity,
+//    bool sanity_check_flag;
+    _sanity_check_flag = pre_motion_sanity_checks(_initial_position, _initial_velocity, _goal_position, _max_velocity,
                                                  _max_acceleration);
-    if (!sanity_check_flag) {
+    if (!_sanity_check_flag) {
         return;
     }
 
@@ -252,6 +256,8 @@ current_acceleration, float max_acceleration, float time_step) {
 
     current_position += current_velocity * time_step + 0.5 * current_acceleration * std::pow(time_step, 2);
 }
+
+
 /// @brief This method handles the calculations for the cruising phase. current acceleration is set to zero since
 /// the motor is moving at it's max velocity. The current velocity is set to the maximum velocity and the current
 /// position the second equation of motion. However, a is 0 so S = u*t + 0.5*a*t^2 becomes S = u*t. We update the
@@ -267,6 +273,9 @@ current_acceleration, float time_step) {
     current_velocity = max_velocity;
     current_position += current_velocity * time_step;
 }
+
+
+
 /// @brief This method handles the calculations for the deceleration phase. current acceleration is set to the
 // negative of max acceleration since the motor is slowing down, the formula for current velocity is the first equation
 /// of motion V = U + a*t. or current velocity = initial velocity + acceleration * time. Since the current_velocity is
@@ -349,6 +358,14 @@ remaining_distance, float &distance_covered, float &total_distance) {
     }
     update_trajectory(trajectory_file, time_elapsed, _current_position, _current_velocity,
                       _current_acceleration);
+}
+
+bool StepperController::isSanityCheckFlag() const {
+    return _sanity_check_flag;
+}
+
+void StepperController::setSanityCheckFlag(bool sanityCheckFlag) {
+    _sanity_check_flag = sanityCheckFlag;
 }
 
 //void StepperController::compute_motion_parameters(float& acceleration_time, float& acceleration_distance,

@@ -29,6 +29,7 @@ public:
     bool pre_motion_sanity_checks(float initial_position, float initial_velocity, float
     goal_position, float max_velocity, float max_acceleration);
 
+
 private:
     float _initial_position;
     float _initial_velocity;
@@ -38,7 +39,13 @@ private:
     float _goal_position;
     float _max_velocity;
     float _max_acceleration;
+    bool _sanity_check_flag;
+public:
+    bool isSanityCheckFlag() const;
 
+    void setSanityCheckFlag(bool sanityCheckFlag);
+
+private:
 
 
     void print_acceleration_debug_values();
