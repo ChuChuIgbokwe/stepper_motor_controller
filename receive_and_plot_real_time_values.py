@@ -5,7 +5,7 @@ import re
 
 # Define the IP address and port number to listen on
 IP_ADDRESS = '127.0.0.1'  # Replace with your IP address
-PORT = 8081  # Replace with your desired port number
+PORT = 8082  # Replace with your desired port number
 
 # Create a socket object and bind it to the IP address and port number
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
