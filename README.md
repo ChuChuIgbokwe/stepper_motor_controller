@@ -8,7 +8,8 @@ These values are logged to a .csv file and are also graphed in real time with th
 ### Design Choices:
 * This class assumes that the goal position is always positive and only handles positive goal positions.
 * This class assumes that not exceeding the max velocities and max acceleration are more important than hitting the 
-goal position. There are some edge cases where in order to maintain those conditions, the goal position will be 
+goal position. The other condition was that the motor should stop moving (velocity = 0) at the end of it's trajectory. 
+There are some edge cases where in order to maintain those conditions, the goal position will be 
 overshot or not reached.
 * The python script for graphing must be run **before** the stepper motor class
 * There are two constructors. 
@@ -16,6 +17,7 @@ overshot or not reached.
   max_acceleration)`. 
   * The other has 2 parameters `(inital_position, initial_velocity)`. The latter constructor needs the 
   `set_goal()` method to set the remaining values. 
+  * Both use float values.
 * The second constructor isn't being used because of the requirements 
   for a command line interface. However, it can be used in by making changes to `main.cpp`
 * There are some tests in the tests folder.
@@ -58,6 +60,8 @@ You can change those values to whatever you want. If it's not a feasible traject
 screen explaining what's wrong.
 
 This will run the Stepper Motor class and start sending messages to the python script.
+
+This [video](/images/screen_recording.webm)video shows what it should look like
 
 ## Results
 Once both commands have been sent, you should be able to see the output of the motor displayed on screen
