@@ -121,6 +121,9 @@ private:
     float calculate_remaining_distance();
 
     float calculate_total_time(float acceleration_time, float cruising_time, float deceleration_time);
+
+    void send_data(float time_elapsed);
+
 };
 
 
