@@ -63,6 +63,14 @@ In the second tab go your build directory and run
 
 This will run the Stepper Motor class and start sending messages to the python script.
 
+## Results
+Once both commands have been sent, you should be able to see the output of the motor displayed on screen
+![Alt text](images/trajectories.gif "real_time_graph")
+
 When it's done sending messages, it will display two graphs
 * A subplot with each of the position, velocity and acceleration trajectories
+* ![Alt text](images/trajectories_subplot.png "subplot")
+
 * A graph with the position, velocity and acceleration trajectories superimposed on each other
+* ![Alt text](images/trajectories_superimposed.png "superimposed")
+
