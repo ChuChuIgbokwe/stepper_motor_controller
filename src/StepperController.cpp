@@ -17,6 +17,34 @@ max_velocity, float max_acceleration) :
         _distance_and_time_debug_flag(false),
         _trapezoid_curve_debug_flag(false) {}
 
+    //Only create a socket if both flags are true
+    if(isCommunicationFlag() and isGraphRealTimeFlag()){
+        std::cout<<"Creating Socket"<<std::endl;
+        struct sockaddr_in serv_addr;
+        // Create a socket
+        if ((_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+            perror("Failed to create socket");
+            exit(EXIT_FAILURE);
+        }
+
+        // Configure the server address
+        memset(&serv_addr, '0', sizeof(serv_addr));
+        serv_addr.sin_family = AF_INET;
+        serv_addr.sin_port = htons(8082);
+
+        // Connect to the server
+        if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+            perror("Invalid address/ Address not supported");
+            exit(EXIT_FAILURE);
+        }
+
+        if (connect(_socket_fd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+            perror("Connection failed");
+            exit(EXIT_FAILURE);
+
+        }
+    }
+}
 
 
 StepperController::StepperController(float initial_position, float initial_velocity) :
