@@ -17,7 +17,9 @@ overshot or not reached.
   * The other has 2 parameters `(inital_position, initial_velocity)`. The latter constructor needs the 
   `set_goal()` method to set the remaining values. 
 * The second constructor isn't being used because of the requirements 
-  for a command line interface.
+  for a command line interface. However, it can be used in by making changes to `main.cpp`
+* There are some tests in the tests folder.
+* MotorController.cpp is a short generic abstract class.
 
   
 ### How to get this working
