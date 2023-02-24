@@ -15,7 +15,11 @@ max_velocity, float max_acceleration) :
         _current_position(initial_position),
         _current_velocity(initial_velocity),
         _distance_and_time_debug_flag(false),
-        _trapezoid_curve_debug_flag(false) {}
+        _trapezoid_curve_debug_flag(false),
+        _graph_real_time_flag(true),
+        _communication_flag(true){
+
+    //
 
     //Only create a socket if both flags are true
     if(isCommunicationFlag() and isGraphRealTimeFlag()){
