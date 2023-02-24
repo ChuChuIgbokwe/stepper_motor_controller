@@ -40,6 +40,8 @@ public:
     bool isSanityCheckFlag() const;
     void setSanityCheckFlag(bool sanityCheckFlag);
     void setDistanceAndTimeDebugFlag(bool distanceAndTimeDebugFlag);
+    bool isGraphRealTimeFlag() const;
+    void setGraphRealTimeFlag(bool graphRealTimeFlag);
 
 
 
