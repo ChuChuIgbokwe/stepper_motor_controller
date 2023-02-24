@@ -54,6 +54,8 @@ In the second tab go your build directory and run
 ```commandline
 ./sim_motor --initial-pos -50 --initial-vel -50 --goal-pos 350 --max-vel 75 --max-acc 20
 ```
+You can change those values to whatever you want. If it's not a feasible trajectory, you'll see and error message on 
+screen explaining what's wrong.
 
 This will run the Stepper Motor class and start sending messages to the python script.
 
