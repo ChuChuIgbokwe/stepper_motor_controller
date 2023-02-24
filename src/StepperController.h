@@ -8,6 +8,14 @@
 #include <iostream>
 #include <math.h>
 #include <fstream>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <cstring>
+#include <chrono>
+#include <thread>
+
 
 class StepperController {
 public:
