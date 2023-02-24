@@ -1,11 +1,5 @@
 ## Overview
 This Stepper Controller class models how a stepper motor would be driven using a trapezoidal curve.
-The class calculates takes in the 
-initial position of the motor
-initial velocity of the motor
-goal position of the motor
-the max velocity of the motor
-the max acceleration of the motor
 
 It calculates the time required to hit the goal position while not exceeding the max velocity and 
 acceleration. It then calculates the trajectories of the position, velocity and acceleration at each time step. 
@@ -23,11 +17,9 @@ overshot or not reached.
   * The other has 2 parameters `(inital_position, initial_velocity)`. The latter constructor needs the 
   `set_goal()` method to set the remaining values. 
 * The second constructor isn't being used because of the requirements 
-  for a command line interface
+  for a command line interface.
 
-
-position, velocity and acceleration a 
-
+  
 ### How to get this working
 
 clone the repository
