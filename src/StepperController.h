@@ -57,6 +57,18 @@ private:
 
     bool _distance_and_time_debug_flag;
     bool _trapezoid_curve_debug_flag;
+    bool _graph_real_time_flag;
+    bool _communication_flag;
+public:
+    bool isCommunicationFlag() const;
+
+    void setCommunicationFlag(bool communicationFlag);
+
+private:
+
+    int _socket_fd;
+
+
 
     void debug_print_motion_parameters(float acceleration_time, float acceleration_distance, float deceleration_time,
                                        float deceleration_distance, float total_time, float total_distance,
