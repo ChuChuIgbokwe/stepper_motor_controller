@@ -40,7 +40,6 @@ def animate(i):
 
         # Add the received message to the buffer
         buffer.append(data)
-        print(len(buffer[0]))
         data_out = buffer.pop(0)
 
         # Split the data by comma and \n
@@ -48,12 +47,9 @@ def animate(i):
         data_list = list(filter(lambda x: x != b'', data_list))  # Remove empty elements
 
         data_list = [elem.decode() for elem in data_list]
-        print("data_in = ", data_list)
-        print("length of split incoming data = ", len(data_list))
 
         # Wait until data_list has a length that is a multiple of 4
         if len(data_list) != 4 and len(data_list) % 4 == 0:
-            print("too much data")
             for data_quartile_index in range(0, len(data_list), 4):
                 time_elapsed, position, velocity, acceleration = map(float, data_list[data_quartile_index:
                                                                                       data_quartile_index + 4])
@@ -61,13 +57,10 @@ def animate(i):
                 current_position.append(position)
                 current_velocity.append(velocity)
                 current_acceleration.append(acceleration)
-                print("data_quartile = ", data_list[data_quartile_index: data_quartile_index + 4])
-
                 data_quartile_index += 4
 
         if len(data_list) != 4 and len(data_list) % 4 != 0:
             data_list = data_list[:4]
-            print("cut off data_list = ", data_list)
             time_elapsed, position, velocity, acceleration = map(float, data_list)
 
             time_steps.append(time_elapsed)
@@ -83,6 +76,12 @@ def animate(i):
             current_position.append(position)
             current_velocity.append(velocity)
             current_acceleration.append(acceleration)
+
+        # Print the variables
+        print(f"\nTime elapsed: {time_elapsed}")
+        print(f"Current position: {position}")
+        print(f"Current velocity: {velocity}")
+        print(f"Current acceleration: {acceleration}")
 
         # Plot the graphs
         ax1.clear()
