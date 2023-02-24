@@ -449,4 +449,40 @@ float StepperController::calculate_total_time(float acceleration_time, float cru
     return acceleration_time + cruising_time + deceleration_time;
 }
 
+void StepperController::send_data(float time_elapsed) {
+    size_t buffer_size = 1024;
+    char* buffer = (char*) malloc(buffer_size);
+    if (buffer == NULL) {
+        perror("Failed to allocate memory");
+        exit(EXIT_FAILURE);
+    }
+    memset(buffer, 0, buffer_size);
+    int n = snprintf(buffer, buffer_size, "%.3f,%.3f,%.3f,%.3f\n", time_elapsed, _current_position, _current_velocity, _current_acceleration);
+    printf("Sending data: %s", buffer);
+    if (send(_socket_fd, buffer, n, 0) < 0) {
+        perror("Failed to send data");
+        exit(EXIT_FAILURE);
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    printf("Data sent successfully.\n");
+    free(buffer);
+}
+
+
+bool StepperController::isGraphRealTimeFlag() const {
+    return _graph_real_time_flag;
+}
+
+void StepperController::setGraphRealTimeFlag(bool graphRealTimeFlag) {
+    _graph_real_time_flag = graphRealTimeFlag;
+}
+
+bool StepperController::isCommunicationFlag() const {
+    return _communication_flag;
+}
+
+void StepperController::setCommunicationFlag(bool communicationFlag) {
+    _communication_flag = communicationFlag;
+}
+
 
