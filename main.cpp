@@ -1,15 +1,6 @@
-#include <iostream>
 #include "src/StepperController.h"
-#include <cstdlib>
 #include <vector>
 #include <string>
-
-////    StepperController stepperController(-150, -50, 550, 75, 10);
-////    StepperController stepperController(-150, -50);
-////    stepperController.set_goal(550, 75, 10);
-////    stepperController.step();
-
-
 
 // Define a helper function to parse command line arguments
 template <typename T>
@@ -61,13 +52,12 @@ int main(int argc, char* argv[])
     // Set up stepper controller and perform motor movement
     StepperController controller(initial_pos, initial_vel, goal_pos, max_vel, max_acc);
     controller.step();
-//
 
     // Graph position over time if everything looks good. This prevents the last successful plot from being displayed
     // as the csv file hasn't been overwritten yet
     bool sanity_check_flag = controller.isSanityCheckFlag();
     if(sanity_check_flag) {
-        system("python3 ../plot_trajectory.py");
+        system("python3 ../scripts/plot_trajectory.py");
     }
     return 0;
 }
