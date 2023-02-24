@@ -61,7 +61,7 @@ screen explaining what's wrong.
 
 This will run the Stepper Motor class and start sending messages to the python script.
 
-This [video](/images/screen_recording.webm)video shows what it should look like
+This [video](/images/screen_recording.webm) shows what it should look like
 
 ## Results
 Once both commands have been sent, you should be able to see the output of the motor displayed on screen
