@@ -4,7 +4,6 @@
 
 #include "StepperController.h"
 
-
 StepperController::StepperController(float initial_position, float initial_velocity, float goal_position, float
 max_velocity, float max_acceleration) :
         _initial_position(initial_position),
@@ -68,7 +67,6 @@ void StepperController::set_goal(float position, float velocity, float accelerat
     _max_velocity = velocity;
     _max_acceleration = acceleration;
     _current_acceleration = acceleration;
-
 }
 /// @brief a getter method to return the current position
 /// @return
@@ -359,7 +357,8 @@ remaining_distance, float &distance_covered, float &total_distance) {
             accelerate(_current_velocity, _max_velocity, _current_position, _current_acceleration, _max_acceleration,
                        time_step);
 
-        } else if (time_elapsed < acceleration_time + cruising_time) {
+        }
+        else if (time_elapsed < acceleration_time + cruising_time) {
             if (_trapezoid_curve_debug_flag) {
                 print_cruising_debug_values(time_elapsed, remaining_distance, distance_covered);
             }
@@ -369,7 +368,8 @@ remaining_distance, float &distance_covered, float &total_distance) {
             cruise(_current_velocity, _current_position, _max_velocity, _current_acceleration, time_step);
 
 
-        } else {
+            }
+        else {
             if (_trapezoid_curve_debug_flag) {
                 print_deceleration_debug_values(time_elapsed, remaining_distance, distance_covered);
             }
@@ -377,7 +377,13 @@ remaining_distance, float &distance_covered, float &total_distance) {
                               _current_acceleration);
             decelerate(_current_velocity, _current_position, _current_acceleration, _max_acceleration, time_step);
 
+            }
+        //Only send data over socket if both flags are true
+        if (isCommunicationFlag() and isGraphRealTimeFlag()){
+            send_data(time_elapsed);
         }
+
+
         // compute remaining distance
         remaining_distance = _goal_position - _current_position;
         distance_covered = total_distance - remaining_distance;
