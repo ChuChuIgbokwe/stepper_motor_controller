@@ -114,7 +114,7 @@ void StepperController::step() {
                                       cruising_distance);
     }
 
-    std::ofstream trajectory_file("../trajectories.csv");
+    std::ofstream trajectory_file("../data/trajectories.csv");
     if (!trajectory_file) {
         std::cerr << "Failed to open file for writing!" << std::endl;
     }
